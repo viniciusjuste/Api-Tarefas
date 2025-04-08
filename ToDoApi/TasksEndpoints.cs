@@ -6,26 +6,32 @@ public class TasksEndpoints
     public static void MapEndpoints(WebApplication app)
     {
         app.MapPost("/tasks/add", async (TaskDb db, Task task) =>
+{
+    try
+    {
+        if (task is null || string.IsNullOrWhiteSpace(task.Name))
         {
-            try
-            {
+            return Results.BadRequest("The task must have a name.");
+        }
 
-                if (task is null || string.IsNullOrWhiteSpace(task.Name))
-                {
-                    return Results.BadRequest("The task must have a name.");
-                }
+        // Gera ID apenas se não veio um válido
+        if (task.Id == Guid.Empty)
+        {
+            task.Id = Guid.NewGuid();
+        }
 
-                task.Id = Guid.NewGuid(); 
-                await db.Tasks.AddAsync(task);
-                await db.SaveChangesAsync();
-                return Results.Created($"/tasks/{task.Id}", task);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                return Results.Problem("An internal server error occurred. Please try again later.");
-            }
-        });
+        await db.Tasks.AddAsync(task);
+        await db.SaveChangesAsync();
+
+        return Results.Created($"/tasks/{task.Id}", task);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] {ex.Message}");
+        return Results.Problem("An internal server error occurred. Please try again later.");
+    }
+});
+
 
         app.MapGet("/tasks", async (TaskDb db) =>
         {
@@ -64,15 +70,17 @@ public class TasksEndpoints
             }
         });
 
-        app.MapPut("/task/{id:guid}", async (TaskDb db, Guid id, [FromBody] Task task) => {
-            try {
+        app.MapPut("/task/{id:guid}", async (TaskDb db, Guid id, [FromBody] Task task) =>
+        {
+            try
+            {
                 if (task is null || string.IsNullOrWhiteSpace(task.Name))
                 {
                     return Results.BadRequest("The task must have a name.");
                 }
 
                 var ExistingTask = await db.Tasks.FindAsync(id);
-                if( ExistingTask is null)
+                if (ExistingTask is null)
                 {
                     return Results.NotFound("Task not found.");
                 }
@@ -91,11 +99,13 @@ public class TasksEndpoints
             }
         });
 
-        app.MapDelete("/task/{id:guid}", async (TaskDb db, Guid id) => {
-            try {
-            
+        app.MapDelete("/task/{id:guid}", async (TaskDb db, Guid id) =>
+        {
+            try
+            {
+
                 var task = await db.Tasks.FindAsync(id);
-                if(task is null)
+                if (task is null)
                 {
                     return Results.NotFound("Task not found.");
                 }
