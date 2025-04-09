@@ -5,7 +5,7 @@ public class TasksEndpoints
 {
     public static void MapEndpoints(WebApplication app)
     {
-        app.MapPost("/tasks/add", async (TaskDb db, Task task) =>
+        app.MapPost("/task/add", async (TaskDb db, Task task) =>
 {
     try
     {
@@ -32,8 +32,7 @@ public class TasksEndpoints
     }
 });
 
-
-        app.MapGet("/tasks", async (TaskDb db) =>
+        app.MapGet("/task", async (TaskDb db) =>
         {
             try
             {
